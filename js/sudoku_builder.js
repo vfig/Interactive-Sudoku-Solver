@@ -452,6 +452,13 @@ class SudokuConstraint {
     }
   }
 
+  static DoubleLine = class DoubleLine extends SudokuConstraint {
+    constructor(...cells) {
+      super(arguments);
+      this.cells = cells;
+    }
+  }
+
   static RegionSumLine = class RegionSumLine extends SudokuConstraint {
     constructor(...cells) {
       super(arguments);
@@ -922,6 +929,14 @@ class SudokuBuilder {
           cells = constraint.cells.map(c => shape.parseCellId(c).cell);
           yield new SudokuConstraintHandler.AllDifferent(cells);
           yield new SudokuConstraintHandler.Renban(cells);
+          break;
+
+        case 'DoubleLine':
+          cells = constraint.cells.map(c => shape.parseCellId(c).cell);
+          for (let i = 1; i < cells.length; i++) {
+            yield new SudokuConstraintHandler.BinaryConstraint(
+              cells[i-1], cells[i], (a, b) => a == b * 2 || b == a * 2);
+          }
           break;
 
         case 'RegionSumLine':

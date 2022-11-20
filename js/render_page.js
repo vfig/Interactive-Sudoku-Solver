@@ -651,6 +651,16 @@ class ConstraintManager {
         this._addToPanel(config);
         this._configs.push(config);
         break;
+      case 'DoubleLine':
+        config = {
+          cells: constraint.cells,
+          name: 'DoubleLine',
+          constraint: constraint,
+          displayElem: this._display.drawDoubleLine(constraint.cells),
+        };
+        this._addToPanel(config)
+        this._configs.push(config)
+        break;
       case 'Palindrome':
         config = {
           cells: constraint.cells,
@@ -768,6 +778,10 @@ class ConstraintManager {
         break;
       case 'renban':
         constraint = new SudokuConstraint.Renban(...cells);
+        this.loadConstraint(constraint);
+        break;
+      case 'double-line':
+        constraint = new SudokuConstraint.DoubleLine(...cells);
         this.loadConstraint(constraint);
         break;
       case 'region-sum':

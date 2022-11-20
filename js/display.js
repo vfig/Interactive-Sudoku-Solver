@@ -567,6 +567,10 @@ class ConstraintDisplay extends DisplayItem {
     return this._drawConstraintLine(cells, 'rgb(230, 190, 155)');
   }
 
+  drawDoubleLine(cells) {
+    return this._drawConstraintLine(cells, 'rgb(50, 200, 200)');
+  }
+
   drawRegionSumLine(cells) {
     return this._drawConstraintLine(cells, 'rgb(100, 255, 100)');
   }
