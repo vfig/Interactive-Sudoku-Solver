@@ -359,10 +359,11 @@ class ConstraintDisplay extends DisplayItem {
     this._applyGridOffset(this._adjConstraintGroup);
     this._killerCageDisplay = new KillerCageDisplay(
       displayContainer.getNewGroup('killer-cage-group'));
+    this._oddEvenDisplay = displayContainer.getNewGroup('odd-even-group');
+    this._applyGridOffset(this._oddEvenDisplay);
 
     this._diagonalDisplay = new DiagonalDisplay(
       displayContainer.getNewGroup('diagonal-group'));
-
     this._fixedValueDisplay = new FixedValueDisplay(
       displayContainer.getNewGroup('fixed-value-group'));
 
@@ -412,6 +413,7 @@ class ConstraintDisplay extends DisplayItem {
     clearDOMNode(this._thermoGroup);
     clearDOMNode(this._lineConstraintGroup);
     clearDOMNode(this._adjConstraintGroup);
+    clearDOMNode(this._oddEvenDisplay);
 
     this._fixedValueDisplay.clear();
 
@@ -520,6 +522,18 @@ class ConstraintDisplay extends DisplayItem {
     p0[1] += dy * frac;
   }
 
+  _RECT_RADIUS = 15;
+
+  _makeRect(cell) {
+    const [x, y] = this.cellIdCenter(cell);
+    let rect = createSvgElement('rect');
+    rect.setAttribute('x', x-this._RECT_RADIUS);
+    rect.setAttribute('y', y-this._RECT_RADIUS);
+    rect.setAttribute('width', 2*this._RECT_RADIUS);
+    rect.setAttribute('height', 2*this._RECT_RADIUS);
+    return rect;
+  }
+
   drawArrow(cells) {
     if (cells.length < 2) throw (`Arrow too short: ${cells}`)
 
@@ -544,6 +558,22 @@ class ConstraintDisplay extends DisplayItem {
     this._lineConstraintGroup.append(arrow);
 
     return arrow;
+  }
+
+  drawEven(cells) {
+    let rect = this._makeRect(cells[0]);
+    rect.setAttribute('fill', 'rgb(220, 220, 220)');
+    rect.setAttribute('stroke', 'rgb(220, 220, 220)');
+    this._oddEvenDisplay.append(rect);
+    return rect;
+  }
+
+  drawOdd(cells) {
+    let circle = this._makeCircle(cells[0]);
+    circle.setAttribute('fill', 'rgb(220, 220, 220)');
+    circle.setAttribute('stroke', 'rgb(220, 220, 220)');
+    this._oddEvenDisplay.append(circle);
+    return circle;
   }
 
   _drawConstraintLine(cells, color) {

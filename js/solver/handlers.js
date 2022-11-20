@@ -61,6 +61,26 @@ SudokuConstraintHandler.FixedCells = class FixedCells extends SudokuConstraintHa
   }
 }
 
+SudokuConstraintHandler.ModuloConstraint = class ModuloConstraint extends SudokuConstraintHandler {
+  constructor(cell, divisor, remainder) {
+    super();
+    this._cell = cell;
+    this._divisor = divisor;
+    this._remainder = remainder;
+  }
+
+  initialize(initialGrid) {
+    var value = 0;
+    for (var i=1; i<=9; ++i) {
+      if ((i%this._divisor)==this._remainder) {
+        value |= LookupTables.fromValue(i);
+      }
+    }
+    initialGrid[this._cell] = value;
+    return true;
+  }
+}
+
 SudokuConstraintHandler.AllDifferent = class AllDifferent extends SudokuConstraintHandler {
   constructor(conflictCells) {
     super();

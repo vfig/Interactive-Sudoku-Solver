@@ -240,6 +240,10 @@ fieldset[disabled] {
   color: grey;
 }
 
+input[type=radio]:disabled+label {
+  color: grey;
+}
+
 textarea {
   margin: 10px 0px;
 }

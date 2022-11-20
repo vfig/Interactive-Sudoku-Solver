@@ -532,6 +532,20 @@ class SudokuConstraint {
     }
   }
 
+  static Even = class Even extends SudokuConstraint {
+    constructor(...cells) {
+      super(arguments);
+      this.cells = cells;
+    }
+  }
+
+  static Odd = class Odd extends SudokuConstraint {
+    constructor(...cells) {
+      super(arguments);
+      this.cells = cells;
+    }
+  }
+
   static WhiteDot = class WhiteDot extends SudokuConstraint {
     constructor(...cells) {
       super(arguments);
@@ -866,6 +880,16 @@ class SudokuBuilder {
               [negativeCell, ...positiveCells]);
           }
 
+          break;
+
+        case 'Even':
+          cells = constraint.cells.map(c => shape.parseCellId(c).cell);
+          yield new SudokuConstraintHandler.ModuloConstraint(cells[0], 2, 0);
+          break;
+
+        case 'Odd':
+          cells = constraint.cells.map(c => shape.parseCellId(c).cell);
+          yield new SudokuConstraintHandler.ModuloConstraint(cells[0], 2, 1);
           break;
 
         case 'Cage':

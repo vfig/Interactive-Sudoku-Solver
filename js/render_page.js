@@ -455,12 +455,29 @@ class ConstraintManager {
   }
 
   _onNewSelection(selection, selectionForm) {
-    // Only enable the selection panel if the selection is long enough.
-    const disabled = (selection.length < 2);
-    selectionForm.firstElementChild.disabled = disabled;
-    if (disabled) return;
+    var anyEnabled = false;
+    console.log("_onNewSelection:",selection);
 
-    // Multi-cell selections.
+    // Single-cell selections.
+    const singleCellConstraints = [
+      'single-cell-constraint-even',
+      'single-cell-constraint-odd',
+    ];
+
+    // Enable/disable the single cell constraints.
+    let singleCellSelected = (selection.length==1);
+    for (const c of singleCellConstraints) {
+      const elem = selectionForm[c];
+      if (singleCellSelected) {
+        elem.disabled = false;
+        anyEnabled = true;
+      } else {
+        elem.checked = false;
+        elem.disabled = true;
+      }
+    }
+
+    // Adjacent-cell selections.
     const adjacentOnlyConstraints = [
       'multi-cell-constraint-white-dot',
       'multi-cell-constraint-black-dot',
@@ -474,6 +491,33 @@ class ConstraintManager {
       const elem = selectionForm[c];
       if (cellsAreAdjacent) {
         elem.disabled = false;
+        anyEnabled = true;
+      } else {
+        elem.checked = false;
+        elem.disabled = true;
+      }
+    }
+
+    // Multi-cell selections.
+    const multiCellConstraints = [
+      'multi-cell-constraint-cage',
+      'multi-cell-constraint-thermo',
+      'multi-cell-constraint-arrow',
+      'multi-cell-constraint-palindrome',
+      'multi-cell-constraint-whisper',
+      'multi-cell-constraint-renban',
+      'multi-cell-constraint-double-line',
+      'multi-cell-constraint-between',
+      'multi-cell-constraint-region-sum',
+    ];
+
+    // Enable/disable the single cell constraints.
+    let multipleCellsSelected = (selection.length>1);
+    for (const c of multiCellConstraints) {
+      const elem = selectionForm[c];
+      if (multipleCellsSelected) {
+        elem.disabled = false;
+        anyEnabled = true;
       } else {
         elem.checked = false;
         elem.disabled = true;
@@ -483,9 +527,15 @@ class ConstraintManager {
     if (this._jigsawManager.isValidJigsawPiece(selection)) {
       selectionForm['multi-cell-constraint-jigsaw'].disabled = false;
       selectionForm['multi-cell-constraint-jigsaw'].checked = true;
+      anyEnabled = true;
     } else {
       selectionForm['multi-cell-constraint-jigsaw'].disabled = true;
     }
+
+    // Only enable the selection panel if the selection is long enough.
+    const disabled = !(anyEnabled || selection.length>2);
+    selectionForm.firstElementChild.disabled = disabled;
+    if (disabled) return;
 
     // Focus on the the form so we can immediately press enter.
     //   - If the cage is selected then focus on the text box for easy input.
@@ -567,6 +617,26 @@ class ConstraintManager {
         constraint.values.forEach(valueId => {
           this._fixedValues.setValueId(valueId);
         });
+        break;
+      case 'Even':
+        config = {
+          cells: constraint.cells,
+          name: 'Even',
+          constraint: constraint,
+          displayElem: this._display.drawEven(constraint.cells),
+        };
+        this._addToPanel(config);
+        this._configs.push(config);
+        break;
+      case 'Odd':
+        config = {
+          cells: constraint.cells,
+          name: 'Odd',
+          constraint: constraint,
+          displayElem: this._display.drawOdd(constraint.cells),
+        };
+        this._addToPanel(config);
+        this._configs.push(config);
         break;
       case 'X':
         config = {
@@ -750,21 +820,33 @@ class ConstraintManager {
 
   _addConstraintFromForm(selectionForm, inputManager) {
     const cells = inputManager.getSelection();
-    if (cells.length < 2) throw ('Selection too short.');
 
     let formData = new FormData(selectionForm);
 
     let constraint;
     switch (formData.get('constraint-type')) {
       case 'arrow':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.Arrow(...cells);
         this.loadConstraint(constraint);
         break;
+      case 'even':
+        if (cells.length > 1) throw ('Selection too long.');
+        constraint = new SudokuConstraint.Even(...cells);
+        this.loadConstraint(constraint);
+        break;
+      case 'odd':
+        if (cells.length > 1) throw ('Selection too long.');
+        constraint = new SudokuConstraint.Odd(...cells);
+        this.loadConstraint(constraint);
+        break;
       case 'cage':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.Cage(+formData.get('cage-sum'), ...cells);
         this.loadConstraint(constraint);
         break;
       case 'thermo':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.Thermo(...cells);
         this.loadConstraint(constraint);
         break;
@@ -772,43 +854,53 @@ class ConstraintManager {
         this._jigsawManager.addPiece(cells);
         break;
       case 'whisper':
+        if (cells.length < 2) throw ('Selection too short.');
         let difference = +formData.get('whisper-difference');
         constraint = new SudokuConstraint.Whisper(difference, ...cells);
         this.loadConstraint(constraint);
         break;
       case 'renban':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.Renban(...cells);
         this.loadConstraint(constraint);
         break;
       case 'double-line':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.DoubleLine(...cells);
         this.loadConstraint(constraint);
         break;
       case 'region-sum':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.RegionSumLine(...cells);
         this.loadConstraint(constraint);
         break;
       case 'between':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.Between(...cells);
         this.loadConstraint(constraint);
         break;
       case 'palindrome':
+        if (cells.length < 2) throw ('Selection too short.');
         constraint = new SudokuConstraint.Palindrome(...cells);
         this.loadConstraint(constraint);
         break;
       case 'white-dot':
+        if (cells.length != 2) throw ('Selection not 2.');
         constraint = new SudokuConstraint.WhiteDot(...cells);
         this.loadConstraint(constraint);
         break;
       case 'black-dot':
+        if (cells.length != 2) throw ('Selection not 2.');
         constraint = new SudokuConstraint.BlackDot(...cells);
         this.loadConstraint(constraint);
         break;
       case 'x':
+        if (cells.length != 2) throw ('Selection not 2.');
         constraint = new SudokuConstraint.X(...cells);
         this.loadConstraint(constraint);
         break;
       case 'v':
+        if (cells.length != 2) throw ('Selection not 2.');
         constraint = new SudokuConstraint.V(...cells);
         this.loadConstraint(constraint);
         break;
@@ -1143,7 +1235,7 @@ class GridInputManager {
     this._selection = new Selection(displayContainer);
     this._selection.addCallback(cellIds => {
       if (cellIds.length == 1) {
-        this._runCallbacks(this._callbacks.onSelection, []);
+        this._runCallbacks(this._callbacks.onSelection, cellIds);
         const [x, y] = this._selection.cellIdCenter(cellIds[0]);
         fakeInput.style.top = y + 'px';
         fakeInput.style.left = x + 'px';
